@@ -6,16 +6,14 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
-
 var rootCmd = &cobra.Command{
 	Use:   "learn-cli-go",
 	Short: "CLI application for manipulating authors and books",
-	Long: ``,
+	Long:  ``,
 
-  Run: func(cmd *cobra.Command, args []string) {
-    cmd.Help()
-  },
+	Run: func(cmd *cobra.Command, args []string) {
+		cmd.Help()
+	},
 }
 
 func Execute() {
