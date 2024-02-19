@@ -1,26 +1,40 @@
 package cmd
 
 import (
-	"fmt"
-
+	"github.com/joaovds/learn-cli-go/internal/database"
+	"github.com/joaovds/learn-cli-go/internal/service"
 	"github.com/spf13/cobra"
 )
 
-var listCmd = &cobra.Command{
-	Use:   "list",
-	Short: "List author(s) command",
-	Long:  `List author(s) command. This command is used to list all authors or a specific author by id.`,
-	RunE:  listAuthor(),
+func newAuthorListCmd(as *service.AuthorService) *cobra.Command {
+	return &cobra.Command{
+		Use:   "list",
+		Short: "List author(s) command",
+		Long:  `List author(s) command. This command is used to list all authors or a specific author by id.`,
+		RunE:  listAuthor(as),
+	}
 }
 
-func listAuthor() RunEFunc {
+func listAuthor(as *service.AuthorService) RunEFunc {
 	return func(cmd *cobra.Command, args []string) error {
-		fmt.Println("list called")
+		authors, err := as.GetAuthors()
+		if err != nil {
+			cmd.PrintErr(err)
+			return err
+		}
+
+		for _, a := range authors {
+			cmd.Println(a.Format())
+		}
 
 		return nil
 	}
 }
 
 func init() {
-	authorCmd.AddCommand(listCmd)
+	db, _ := database.GetConnection()
+	authorDB := database.NewAuthor(db)
+	authorService := service.NewAuthorService(*authorDB)
+
+	authorCmd.AddCommand(newAuthorListCmd(authorService))
 }
