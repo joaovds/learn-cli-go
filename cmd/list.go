@@ -17,18 +17,40 @@ func newAuthorListCmd(as *service.AuthorService) *cobra.Command {
 
 func listAuthor(as *service.AuthorService) RunEFunc {
 	return func(cmd *cobra.Command, args []string) error {
-		authors, err := as.GetAuthors()
-		if err != nil {
-			cmd.PrintErr(err)
-			return err
+		authorID, _ := cmd.Flags().GetString("id")
+
+		if authorID != "" {
+			return listAuthorById(cmd, as, authorID)
 		}
 
-		for _, a := range authors {
-			cmd.Println(a.Format())
-		}
-
-		return nil
+		return listAllAuthors(cmd, as)
 	}
+}
+
+func listAllAuthors(cmd *cobra.Command, as *service.AuthorService) error {
+	authors, err := as.GetAuthors()
+	if err != nil {
+		cmd.PrintErr(err)
+		return err
+	}
+
+	for _, a := range authors {
+		cmd.Println(a.Format())
+	}
+
+	return nil
+}
+
+func listAuthorById(cmd *cobra.Command, as *service.AuthorService, id string) error {
+	author, err := as.GetAuthorById(id)
+	if err != nil {
+		cmd.PrintErr(err)
+		return err
+	}
+
+	cmd.Println(author.Format())
+
+	return nil
 }
 
 func init() {
@@ -36,5 +58,9 @@ func init() {
 	authorDB := database.NewAuthor(db)
 	authorService := service.NewAuthorService(*authorDB)
 
-	authorCmd.AddCommand(newAuthorListCmd(authorService))
+	listCmd := newAuthorListCmd(authorService)
+
+	authorCmd.AddCommand(listCmd)
+
+	listCmd.Flags().String("id", "", "Author ID")
 }

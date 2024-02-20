@@ -44,3 +44,12 @@ func (a *AuthorService) GetAuthors() ([]AuthorServiceResponse, error) {
 
 	return response, nil
 }
+
+func (a *AuthorService) GetAuthorById(id string) (AuthorServiceResponse, error) {
+	author, err := a.AuthorDB.GetById(id)
+	if err != nil {
+		return AuthorServiceResponse{}, err
+	}
+
+	return *NewAuthorServiceResponse(author.ID, author.Name, author.Description), nil
+}

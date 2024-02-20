@@ -1,6 +1,9 @@
 package database
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+)
 
 type Author struct {
 	db          *sql.DB
@@ -12,6 +15,10 @@ type Author struct {
 func NewAuthor(db *sql.DB) *Author {
 	return &Author{db: db}
 }
+
+var (
+	ErrAuthorNotFound = errors.New("author not found")
+)
 
 func (a *Author) GetAll() ([]Author, error) {
 	rows, err := a.db.Query("SELECT id, name, description FROM authors")
@@ -34,4 +41,21 @@ func (a *Author) GetAll() ([]Author, error) {
 	}
 
 	return authors, nil
+}
+
+func (a *Author) GetById(id string) (Author, error) {
+	var author Author
+	err := a.db.QueryRow(
+		"SELECT id, name, description FROM authors WHERE id = $1",
+		id,
+	).Scan(&author.ID, &author.Name, &author.Description)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return Author{}, ErrAuthorNotFound
+		}
+
+		return Author{}, err
+	}
+
+	return author, nil
 }
